@@ -1,47 +1,56 @@
-import React from 'react';
+import React from "react";
+import axios from "axios";
+import Movie from "./Movie";
 
 //Class Component
-class App extends React.Component{
-  constructor(props){
-    super(props);
-    console.log("Component Constructor");
-  }
-
-  //동적으로 변하는 데이터가 들어가는 'State'
-  //state의 데이터가 변하면 render 재호출 (with virtual DOM)
+class App extends React.Component {
   state = {
-    count: 0
+    isLoading: true,
+    movies: []
   };
 
-  add = () => {
-    this.setState( current => ({count: current.count + 1}) );
+  //영화 리스트가 로드될 때 까지 기다림 (비동기 동작)
+  getMovies = async () => {
+    // const movies = await axios.get("https://yts-proxy.now.sh/list_movies.json");
+    // console.log(movies.data.data.movies);
+    const {
+      data: {
+        data: { movies }
+      }
+    } = await axios.get(
+      "https://yts-proxy.now.sh/list_movies.json?sort_by=rating"
+    );
+    console.log(movies);
+
+    // this.setState({ movies: movies, isLoading: false});
+    this.setState({ movies, isLoading: false });
   };
 
-  minus = () => {
-    this.setState( current => ({ count: current.count - 1}) );
-  };
-
-  componentDidMount(){
-    console.log("Component Rendered");
+  componentDidMount() {
+    this.getMovies();
   }
 
-  componentDidUpdate(){
-    console.log("Component Updated");
-  }
-
-  componentWillUnmount(){
-    console.log("Good Bye")
-  }
-
-  //constructor(생성자)가 실행된 뒤에 render 실행
-  //화면에 표시할 부분을 render method에 넣어야함 (React가 화면 구성시 자동으로 실행)
-  render(){
-    console.log("render");
-    return <div>
-              <h1>The number is : {this.state.count}</h1>
-              <button onClick={this.add}>Add</button>
-              <button onClick={this.minus}>Minus</button>
-           </div>
+  render() {
+    //ES6 Syntax
+    const { isLoading, movies } = this.state;
+    return (
+      <div>
+        {isLoading
+          ? "Loading.."
+          : movies.map(movie => {
+              return (
+                <Movie
+                  key={movie.id}
+                  id={movie.id}
+                  year={movie.year}
+                  title={movie.title}
+                  summary={movie.summary}
+                  poster={movie.medium_cover_image}
+                />
+              );
+            })}
+      </div>
+    );
   }
 }
 
